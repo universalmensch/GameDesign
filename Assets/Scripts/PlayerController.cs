@@ -42,12 +42,29 @@ public class PlayerController : MonoBehaviour
         rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
         
         if (currentPosition.y < 30.0f)
-            movementZ = 1.5f;
+            movementZ = 5.0f;
     }
 
     void FixedUpdate() {
-        Vector3 movement = new Vector3(movementX, movementZ, movementY);
+        Vector3 input = new Vector3(movementX, 0.0f, movementY);
+        
+        Vector3 camForward = Camera.main.transform.forward;
+        Vector3 camRight = Camera.main.transform.right;
+
+        camForward.y = 0;
+        camRight.y = 0;
+
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 movement = camForward * input.z + camRight * input.x;
         rigidbody.AddForce(movement * speed);
+        
+        if (movementZ > 0)
+        {
+            rigidbody.AddForce(Vector3.up * movementZ, ForceMode.Impulse);
+        }
+        
         movementZ = 0.0f;
         movementX = 0.0f;
         movementY = 0.0f;
