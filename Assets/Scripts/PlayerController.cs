@@ -41,7 +41,7 @@ public class PlayerController : MonoBehaviour
 
         rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
         
-        if (currentPosition.y < 30.0f)
+        if (currentPosition.y < 70.0f)
             movementZ = 5.0f;
     }
 

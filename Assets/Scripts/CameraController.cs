@@ -21,7 +21,7 @@ public class CameraController : MonoBehaviour
         {
             Quaternion targetYRotation = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
             
-            Quaternion fixedTilt = Quaternion.Euler(50.0f, targetYRotation.eulerAngles.y, 0);
+            Quaternion fixedTilt = Quaternion.Euler(0.0f, targetYRotation.eulerAngles.y, 0);
 
             // Weiches Nachdrehen
             transform.rotation = Quaternion.Lerp(transform.rotation, fixedTilt, 5.0f * Time.deltaTime);
