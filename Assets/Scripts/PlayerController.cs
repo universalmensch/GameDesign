@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using Unity.Mathematics;
 
 public class PlayerController : MonoBehaviour
 {
@@ -26,7 +27,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
-        if (currentPosition.y < -10.0f)
+        if (currentPosition.y < -30.0f)
         {
             rigidbody.transform.SetPositionAndRotation(ResetVector, Quaternion.identity);
             rigidbody.linearVelocity = Vector3.zero;
@@ -41,15 +42,23 @@ public class PlayerController : MonoBehaviour
 
         rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
         
-        if (currentPosition.y < 70.0f)
-            movementZ = 5.0f;
+        if (currentPosition.y < 50.0f)
+            movementZ = 
+                5.0f;
     }
 
     void FixedUpdate() {
+        Camera cam = Camera.main;
+
+        if (!cam)
+        {
+            return;
+        }
+        
         Vector3 input = new Vector3(movementX, 0.0f, movementY);
         
-        Vector3 camForward = Camera.main.transform.forward;
-        Vector3 camRight = Camera.main.transform.right;
+        Vector3 camForward = cam.transform.forward;
+        Vector3 camRight = cam.transform.right;
 
         camForward.y = 0;
         camRight.y = 0;
@@ -57,8 +66,11 @@ public class PlayerController : MonoBehaviour
         camForward.Normalize();
         camRight.Normalize();
 
-        Vector3 movement = camForward * input.z + camRight * input.x;
-        rigidbody.AddForce(movement * speed);
+        Vector3 forwardMovement = speed * input.z * camForward;
+        Vector3 sidewayMovement  = 2 * speed * input.x * camRight;
+        
+        rigidbody.AddForce(forwardMovement);
+        rigidbody.AddForce(sidewayMovement);
         
         if (movementZ > 0)
         {

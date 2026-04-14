@@ -5,6 +5,9 @@ public class CameraController : MonoBehaviour
     public GameObject player;
     private Vector3 _offset;
     
+    public float tiltStrength = 10f;
+    public float maxTilt = 90f; 
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -17,19 +20,23 @@ public class CameraController : MonoBehaviour
         Rigidbody rb = player.GetComponent<Rigidbody>();
         Vector3 moveDir = rb.linearVelocity;
 
+        Quaternion targetYRotation = Quaternion.identity;
+
         if (moveDir.sqrMagnitude > 0.1f)
         {
-            Quaternion targetYRotation = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
-            
-            Quaternion fixedTilt = Quaternion.Euler(0.0f, targetYRotation.eulerAngles.y, 0);
-
-            // Weiches Nachdrehen
-            transform.rotation = Quaternion.Lerp(transform.rotation, fixedTilt, 5.0f * Time.deltaTime);
+            targetYRotation = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
         }
 
-        Quaternion yRotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+        float targetY = targetYRotation.eulerAngles.y;
 
-        // 3rd Person Position
-        transform.position = player.transform.position + yRotation * _offset;
+        float verticalSpeed = rb.linearVelocity.y;
+
+        float tiltX = Mathf.Clamp(-Mathf.Sign(verticalSpeed) * Mathf.Pow(Mathf.Abs(verticalSpeed), 3f) * tiltStrength, -maxTilt, maxTilt);
+
+        Quaternion targetRotation = Quaternion.Euler(tiltX, targetY, 0);
+
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 2.5f * Time.deltaTime);
+
+        transform.position = player.transform.position + transform.rotation * _offset;
     }
 }
