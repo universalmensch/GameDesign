@@ -1,53 +1,92 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
-using Unity.Mathematics;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
-    private Rigidbody rigidbody;
-    private float movementX;
-    private float movementY;
-    private float movementZ;
-    public float speed = 0;
-    private int count;
-    public TextMeshProUGUI countText;
-    public GameObject winText;
-    private static readonly Vector3 ResetVector = new Vector3(0.0f, 15.0f, 0.0f);
+    private Rigidbody _rigidbody;
+    private float _movementX;
+    private float _movementY;
+    private float _movementZ;
+    private float _timeLeft = 15f;
+    private int _count;
+    private TextMeshProUGUI _resultText;
+    private bool _isGameOver = false;
+    
+    private static readonly Vector3 ResetVector = new(0.0f, 15.0f, 0.0f);
+    
+    public float speed;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public TextMeshProUGUI countText;
+    public TextMeshProUGUI timerText;
+        
+    public GameObject result;
+
+    private void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
-        count = 0;
-        SetCountText();
-        winText.SetActive(false);
+        _rigidbody = GetComponent<Rigidbody>();
+        
+        _count = 0;
+        SetCount(_count.ToString());
+        
+        result.SetActive(false);
+        _resultText = result.GetComponent<TextMeshProUGUI>();
     }
 
-    void Update()
+    private void Update()
     {
-        rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
-        if (currentPosition.y < -30.0f)
+        HandleTimer();
+        HandleMovement();
+    }
+
+    private void HandleMovement()
+    {
+        _rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
+        
+        if (!(currentPosition.y < -30.0f)) return;
+        
+        _rigidbody.transform.SetPositionAndRotation(ResetVector, Quaternion.identity);
+        _rigidbody.linearVelocity = Vector3.zero;
+    }
+
+    private void HandleTimer()
+    {
+        if (_isGameOver)
+            return;
+        
+        _timeLeft -= Time.deltaTime;
+        SetTimer(Mathf.Ceil(_timeLeft).ToString());
+        
+        if (_timeLeft < 0)
         {
-            rigidbody.transform.SetPositionAndRotation(ResetVector, Quaternion.identity);
-            rigidbody.linearVelocity = Vector3.zero;
+            _isGameOver = true;
+            SetResult("You Lose!");
+            StartCoroutine(EndGame());
         }
     }
+        
+    private static IEnumerator EndGame()
+    {
+        yield return new WaitForSeconds(2.0f);
+        SceneManager.LoadScene("Start");
+    }
 
-    void OnMove(InputValue movementValue)
+    private void OnMove(InputValue movementValue)
     {
         Vector2 movementVectorInput = movementValue.Get<Vector2>();
-        movementX = movementVectorInput.x;
-        movementY = movementVectorInput.y;
+        _movementX = movementVectorInput.x;
+        _movementY = movementVectorInput.y;
 
-        rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
+        _rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
         
         if (currentPosition.y < 50.0f)
-            movementZ = 
+            _movementZ = 
                 5.0f;
     }
 
-    void FixedUpdate() {
+    private void FixedUpdate() {
         Camera cam = Camera.main;
 
         if (!cam)
@@ -55,7 +94,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
-        Vector3 input = new Vector3(movementX, 0.0f, movementY);
+        Vector3 input = new Vector3(_movementX, 0.0f, _movementY);
         
         Vector3 camForward = cam.transform.forward;
         Vector3 camRight = cam.transform.right;
@@ -69,17 +108,17 @@ public class PlayerController : MonoBehaviour
         Vector3 forwardMovement = speed * input.z * camForward;
         Vector3 sidewayMovement  = 2 * speed * input.x * camRight;
         
-        rigidbody.AddForce(forwardMovement);
-        rigidbody.AddForce(sidewayMovement);
+        _rigidbody.AddForce(forwardMovement);
+        _rigidbody.AddForce(sidewayMovement);
         
-        if (movementZ > 0)
+        if (_movementZ > 0)
         {
-            rigidbody.AddForce(Vector3.up * movementZ, ForceMode.Impulse);
+            _rigidbody.AddForce(Vector3.up * _movementZ, ForceMode.Impulse);
         }
         
-        movementZ = 0.0f;
-        movementX = 0.0f;
-        movementY = 0.0f;
+        _movementZ = 0.0f;
+        _movementX = 0.0f;
+        _movementY = 0.0f;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -87,28 +126,36 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.CompareTag("Pickup"))
         {
             other.gameObject.SetActive(false);
-            count += 1;
-            SetCountText();
+            ResetTimer();
+            _count += 1;
+            SetCount(_count.ToString());
+            
+            if (_count >= 10)
+            {
+                SetResult("You Win!");
+                result.SetActive(true);
+            }
         }
     }
     
-    private void OnCollisionEnter(Collision collision)
+    private void ResetTimer()
     {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            Destroy(gameObject); 
-            winText.GetComponent<TextMeshProUGUI>().text = "You Lose!";
-            winText.gameObject.SetActive(true);
-        }
+        _timeLeft = 15f;
     }
 
-    void SetCountText()
+    private void SetResult(string resultText)
     {
-        countText.text = "Score: " + count;
-        if (count >= 10)
-        {
-            Destroy(GameObject.FindGameObjectWithTag("Enemy"));
-            winText.SetActive(true);
-        }
+        _resultText.text = resultText;
+        result.gameObject.SetActive(true);
+    }
+
+    private void SetTimer(string timerValue)
+    {
+        timerText.text = timerValue;
+    }
+
+    private void SetCount(string countValue)
+    {
+        countText.text = "Score: " + countValue;
     }
 }
