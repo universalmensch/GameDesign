@@ -24,10 +24,10 @@ public class PlayerController : MonoBehaviour
     
     private void Update()
     {
-        HandleMovement();
+        HandlePosition();
     }
 
-    private void HandleMovement()
+    private void HandlePosition()
     {
         _rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
         
@@ -42,16 +42,10 @@ public class PlayerController : MonoBehaviour
         Vector2 movementVectorInput = movementValue.Get<Vector2>();
         _movementX = movementVectorInput.x;
         _movementY = movementVectorInput.y;
-
-        _rigidbody.transform.GetPositionAndRotation(out var currentPosition, out _);
-        
-        if (currentPosition.y < 50.0f)
-            _movementZ = 
-                5.0f;
     }
 
     private void OnJump() {
-	
+        _movementZ = 25.0f;
     }
     
     private void OnTriggerEnter(Collider other)
@@ -65,32 +59,42 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         if (!_cam) return;
-        if (ControlledPlayer != gameController.selectedPlayer) return;
         
-        Vector3 input = new Vector3(_movementX, 0.0f, _movementY);
-        
+        HandleMovement();
+        HandleJump();
+        ResetMovementInput();
+    }
+
+    private void ResetMovementInput()
+    {
+        _movementZ = 0.0f;
+        _movementX = 0.0f;
+        _movementY = 0.0f;
+    }
+
+    private void HandleJump()
+    {
+        if (_movementZ > 0)
+        {
+            _rigidbody.AddForce(Vector3.up * _movementZ, ForceMode.Impulse);
+        }
+    }
+
+    private void HandleMovement()
+    {
         Vector3 camForward = _cam.transform.forward;
-        Vector3 camRight = _cam.transform.right;
-
         camForward.y = 0;
-        camRight.y = 0;
-
         camForward.Normalize();
+        
+        Vector3 camRight = _cam.transform.right;
+        camRight.y = 0;
         camRight.Normalize();
 
+        Vector3 input = new Vector3(_movementX, 0.0f, _movementY);
         Vector3 forwardMovement = Speed * input.z * camForward;
         Vector3 sidewayMovement  = 2 * Speed * input.x * camRight;
         
         _rigidbody.AddForce(forwardMovement);
         _rigidbody.AddForce(sidewayMovement);
-        
-        if (_movementZ > 0)
-        {
-            _rigidbody.AddForce(Vector3.up * _movementZ, ForceMode.Impulse);
-        }
-        
-        _movementZ = 0.0f;
-        _movementX = 0.0f;
-        _movementY = 0.0f;
     }
 }

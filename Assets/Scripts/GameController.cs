@@ -2,12 +2,17 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 
 public class GameController  : MonoBehaviour
     {
         public Player selectedPlayer;
+        public PlayerInput playerAInput;
+        public PlayerInput playerBInput;
+        public PlayerInput playerCInput;
+        
         public TextMeshProUGUI countText;
         public TextMeshProUGUI timerText;
         public TextMeshProUGUI resultText;
@@ -19,17 +24,31 @@ public class GameController  : MonoBehaviour
         private void Start()
         {
             selectedPlayer = Player.PlayerA;
+            UpdateInputStates();
             
             _count = 0;
             SetCount(_count.ToString());
 
-            _timeLeft = 15f;
+            _timeLeft = 45f;
             SetTimer(Mathf.Ceil(_timeLeft).ToString(CultureInfo.CurrentCulture));
         }
         
         private void Update()
         {
             HandleTimer();
+        }
+
+        private void OnSwitchPlayer()
+        {
+            selectedPlayer = selectedPlayer switch
+            {
+                Player.PlayerA => Player.PlayerB,
+                Player.PlayerB => Player.PlayerC,
+                Player.PlayerC => Player.PlayerA,
+                _ => selectedPlayer
+            };
+            
+            UpdateInputStates();
         }
         
         private void HandleTimer()
@@ -76,6 +95,13 @@ public class GameController  : MonoBehaviour
                 SetResult("You Win!");
                 StartCoroutine(EndGame());
             }
+        }
+        
+        private void UpdateInputStates()
+        {
+            playerAInput.enabled = selectedPlayer == Player.PlayerA;
+            playerBInput.enabled = selectedPlayer == Player.PlayerB;
+            playerCInput.enabled = selectedPlayer == Player.PlayerC;
         }
 
         private void HandlePLayerA()

@@ -2,41 +2,47 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public GameObject player;
-    private Vector3 _offset;
+    public Rigidbody playerA;
+    public Rigidbody playerB;
+    public Rigidbody playerC;
+    public GameController gameController;
     
-    public float tiltStrength = 10f;
-    public float maxTilt = 90f; 
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private const float TiltStrength = 10f;
+    private const float MaxTilt = 45f;
+    private static readonly Vector3 Offset = new(0.0f, 1.0f, -5.0f);
+
+    private void LateUpdate()
     {
-        _offset = transform.position - player.transform.position;
-    }
-
-    // Update is called once per frame
-    void LateUpdate()
-    {
-        Rigidbody rb = player.GetComponent<Rigidbody>();
-        Vector3 moveDir = rb.linearVelocity;
-
-        Quaternion targetYRotation = Quaternion.identity;
-
-        if (moveDir.sqrMagnitude > 0.1f)
+        var currentPlayer = gameController.selectedPlayer switch
         {
-            targetYRotation = Quaternion.LookRotation(moveDir.normalized, Vector3.up);
-        }
+            Player.PlayerA => playerA,
+            Player.PlayerB => playerB,
+            Player.PlayerC => playerC,
+            _ => playerA
+        };
 
-        float targetY = targetYRotation.eulerAngles.y;
-
-        float verticalSpeed = rb.linearVelocity.y;
-
-        float tiltX = Mathf.Clamp(-Mathf.Sign(verticalSpeed) * Mathf.Pow(Mathf.Abs(verticalSpeed), 3f) * tiltStrength, -maxTilt, maxTilt);
-
-        Quaternion targetRotation = Quaternion.Euler(tiltX, targetY, 0);
+        var movementDirection = currentPlayer.linearVelocity;
+        var targetRotation = Quaternion.Euler(GetTargetXRotation(movementDirection), GetTargetYRotation(movementDirection), 0);
 
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 2.5f * Time.deltaTime);
+        transform.position = currentPlayer.transform.position + transform.rotation * Offset;
+    }
 
-        transform.position = player.transform.position + transform.rotation * _offset;
+    private static float GetTargetYRotation(Vector3 movementDirection)
+    {
+        var targetYRotation = Quaternion.identity;
+
+        if (movementDirection.sqrMagnitude > 0.1f)
+        {
+            targetYRotation = Quaternion.LookRotation(movementDirection.normalized, Vector3.up);
+        }
+
+        return targetYRotation.eulerAngles.y;
+    }
+
+    private static float GetTargetXRotation(Vector3 movementDirection)
+    {
+        var verticalSpeed = movementDirection.y;
+        return Mathf.Clamp(-Mathf.Sign(verticalSpeed) * Mathf.Pow(Mathf.Abs(verticalSpeed), 3f) * TiltStrength, -MaxTilt, MaxTilt);
     }
 }
