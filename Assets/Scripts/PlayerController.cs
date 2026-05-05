@@ -1,43 +1,29 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
-using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    private static readonly Vector3 ResetVector = new(0.0f, 15.0f, 0.0f);
+    private const float Speed = 100f;
+    private Camera _cam;
     private Rigidbody _rigidbody;
+    
     private float _movementX;
     private float _movementY;
     private float _movementZ;
-    private float _timeLeft = 15f;
-    private int _count;
-    private TextMeshProUGUI _resultText;
-    private bool _isGameOver = false;
     
-    private static readonly Vector3 ResetVector = new(0.0f, 15.0f, 0.0f);
+    public GameController gameController;
     
-    public float speed;
+    protected Player ControlledPlayer;
 
-    public TextMeshProUGUI countText;
-    public TextMeshProUGUI timerText;
-        
-    public GameObject result;
-
-    private void Start()
+    protected virtual void Start()
     {
+        _cam = Camera.main;
         _rigidbody = GetComponent<Rigidbody>();
-        
-        _count = 0;
-        SetCount(_count.ToString());
-        
-        result.SetActive(false);
-        _resultText = result.GetComponent<TextMeshProUGUI>();
     }
-
+    
     private void Update()
     {
-        HandleTimer();
         HandleMovement();
     }
 
@@ -50,29 +36,7 @@ public class PlayerController : MonoBehaviour
         _rigidbody.transform.SetPositionAndRotation(ResetVector, Quaternion.identity);
         _rigidbody.linearVelocity = Vector3.zero;
     }
-
-    private void HandleTimer()
-    {
-        if (_isGameOver)
-            return;
-        
-        _timeLeft -= Time.deltaTime;
-        SetTimer(Mathf.Ceil(_timeLeft).ToString());
-        
-        if (_timeLeft < 0)
-        {
-            _isGameOver = true;
-            SetResult("You Lose!");
-            StartCoroutine(EndGame());
-        }
-    }
-        
-    private static IEnumerator EndGame()
-    {
-        yield return new WaitForSeconds(2.0f);
-        SceneManager.LoadScene("Start");
-    }
-
+    
     private void OnMove(InputValue movementValue)
     {
         Vector2 movementVectorInput = movementValue.Get<Vector2>();
@@ -86,18 +50,27 @@ public class PlayerController : MonoBehaviour
                 5.0f;
     }
 
-    private void FixedUpdate() {
-        Camera cam = Camera.main;
-
-        if (!cam)
-        {
-            return;
-        }
+    private void OnJump() {
+	
+    }
+    
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.gameObject.CompareTag("Pickup")) return;
+        
+        other.gameObject.SetActive(false);
+        gameController.ItemCollected(ControlledPlayer);
+    }
+    
+    private void FixedUpdate()
+    {
+        if (!_cam) return;
+        if (ControlledPlayer != gameController.selectedPlayer) return;
         
         Vector3 input = new Vector3(_movementX, 0.0f, _movementY);
         
-        Vector3 camForward = cam.transform.forward;
-        Vector3 camRight = cam.transform.right;
+        Vector3 camForward = _cam.transform.forward;
+        Vector3 camRight = _cam.transform.right;
 
         camForward.y = 0;
         camRight.y = 0;
@@ -105,8 +78,8 @@ public class PlayerController : MonoBehaviour
         camForward.Normalize();
         camRight.Normalize();
 
-        Vector3 forwardMovement = speed * input.z * camForward;
-        Vector3 sidewayMovement  = 2 * speed * input.x * camRight;
+        Vector3 forwardMovement = Speed * input.z * camForward;
+        Vector3 sidewayMovement  = 2 * Speed * input.x * camRight;
         
         _rigidbody.AddForce(forwardMovement);
         _rigidbody.AddForce(sidewayMovement);
@@ -119,43 +92,5 @@ public class PlayerController : MonoBehaviour
         _movementZ = 0.0f;
         _movementX = 0.0f;
         _movementY = 0.0f;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag("Pickup"))
-        {
-            other.gameObject.SetActive(false);
-            ResetTimer();
-            _count += 1;
-            SetCount(_count.ToString());
-            
-            if (_count >= 10)
-            {
-                SetResult("You Win!");
-                result.SetActive(true);
-            }
-        }
-    }
-    
-    private void ResetTimer()
-    {
-        _timeLeft = 15f;
-    }
-
-    private void SetResult(string resultText)
-    {
-        _resultText.text = resultText;
-        result.gameObject.SetActive(true);
-    }
-
-    private void SetTimer(string timerValue)
-    {
-        timerText.text = timerValue;
-    }
-
-    private void SetCount(string countValue)
-    {
-        countText.text = "Score: " + countValue;
     }
 }
