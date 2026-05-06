@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
+namespace Controller.Game
+{
     public class StartController :  MonoBehaviour
     {
         public void StartGame()
@@ -8,3 +10,4 @@ using UnityEngine.SceneManagement;
             SceneManager.LoadScene("Minigame");
         }
     }
+}

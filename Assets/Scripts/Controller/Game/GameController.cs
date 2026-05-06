@@ -5,10 +5,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-
-public class GameController  : MonoBehaviour
+namespace Controller.Game
+{
+    public class GameController  : MonoBehaviour
     {
-        public Player selectedPlayer;
+        public Entity.Player selectedPlayer;
         public PlayerInput playerAInput;
         public PlayerInput playerBInput;
         public PlayerInput playerCInput;
@@ -23,7 +24,7 @@ public class GameController  : MonoBehaviour
 
         private void Start()
         {
-            selectedPlayer = Player.PlayerA;
+            selectedPlayer = Entity.Player.PlayerA;
             UpdateInputStates();
             
             _count = 0;
@@ -42,9 +43,9 @@ public class GameController  : MonoBehaviour
         {
             selectedPlayer = selectedPlayer switch
             {
-                Player.PlayerA => Player.PlayerB,
-                Player.PlayerB => Player.PlayerC,
-                Player.PlayerC => Player.PlayerA,
+                Entity.Player.PlayerA => Entity.Player.PlayerB,
+                Entity.Player.PlayerB => Entity.Player.PlayerC,
+                Entity.Player.PlayerC => Entity.Player.PlayerA,
                 _ => selectedPlayer
             };
             
@@ -73,15 +74,15 @@ public class GameController  : MonoBehaviour
             SceneManager.LoadScene("Start");
         }
 
-        public void ItemCollected(Player player)
+        public void ItemCollected(Entity.Player player)
         {
             switch (player) 
             {
-                case Player.PlayerA: HandlePLayerA();
+                case Entity.Player.PlayerA: HandlePLayerA();
                     break;
-                case Player.PlayerB: HandlePLayerB();
+                case Entity.Player.PlayerB: HandlePLayerB();
                     break;
-                case Player.PlayerC: HandlePLayerC();
+                case Entity.Player.PlayerC: HandlePLayerC();
                     break;
                 default:
                     AddTime(1);
@@ -99,9 +100,9 @@ public class GameController  : MonoBehaviour
         
         private void UpdateInputStates()
         {
-            playerAInput.enabled = selectedPlayer == Player.PlayerA;
-            playerBInput.enabled = selectedPlayer == Player.PlayerB;
-            playerCInput.enabled = selectedPlayer == Player.PlayerC;
+            playerAInput.enabled = selectedPlayer == Entity.Player.PlayerA;
+            playerBInput.enabled = selectedPlayer == Entity.Player.PlayerB;
+            playerCInput.enabled = selectedPlayer == Entity.Player.PlayerC;
         }
 
         private void HandlePLayerA()
@@ -141,3 +142,4 @@ public class GameController  : MonoBehaviour
             countText.text = "Score: " + countValue;
         }
     }
+}
