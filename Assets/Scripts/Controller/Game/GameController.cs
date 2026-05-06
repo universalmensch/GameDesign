@@ -56,7 +56,7 @@ namespace Controller.Game
             _timeLeft = 25f;
             SetTimer(Mathf.Ceil(_timeLeft).ToString(CultureInfo.CurrentCulture));
             
-            _jumpLeft = 10;
+            _jumpLeft = 8;
             SetJump(_jumpLeft.ToString());
         }
         
@@ -130,22 +130,22 @@ namespace Controller.Game
 
         private void HandlePLayerA()
         {
-            _count += 3;
-            _timeLeft += 7f;
-            _jumpLeft += 3;
+            _count += 4;
+            _timeLeft += 8f;
+            _jumpLeft += 2;
         }
 
         private void HandlePLayerB()
         {
             _count += 1;
             _timeLeft += 20f;
-            _jumpLeft += 3;
+            _jumpLeft += 2;
         }
 
         private void HandlePLayerC()
         {
             _count += 1;
-            _timeLeft += 7f;
+            _timeLeft += 8f;
             _jumpLeft += 10;
         }
         
