@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
@@ -17,21 +18,46 @@ namespace Controller.Game
         public TextMeshProUGUI countText;
         public TextMeshProUGUI timerText;
         public TextMeshProUGUI resultText;
+        public TextMeshProUGUI jumpText;
         
         private int _count;
         private bool _isGameOver;
         private float _timeLeft;
+        
+        private int _jumpLeft;
+        public int JumpLeft
+        {
+            get => _jumpLeft;
+            set
+            {
+                if (value > _jumpLeft)
+                {
+                    _jumpLeft = 0;
+                }
+                else
+                {
+                    _jumpLeft -= value;
+                }
+                
+                SetJump(_jumpLeft.ToString());
+            }
+        }
 
         private void Start()
         {
             selectedPlayer = Entity.Player.PlayerA;
             UpdateInputStates();
             
+            SetResult(String.Empty);
+            
             _count = 0;
             SetCount(_count.ToString());
 
-            _timeLeft = 45f;
+            _timeLeft = 25f;
             SetTimer(Mathf.Ceil(_timeLeft).ToString(CultureInfo.CurrentCulture));
+            
+            _jumpLeft = 10;
+            SetJump(_jumpLeft.ToString());
         }
         
         private void Update()
@@ -84,18 +110,15 @@ namespace Controller.Game
                     break;
                 case Entity.Player.PlayerC: HandlePLayerC();
                     break;
-                default:
-                    AddTime(1);
-                    break;
             }
             
             SetCount(_count.ToString());
+            SetJump(_jumpLeft.ToString());
+
+            if (_count < 15) return;
             
-            if (_count >= 10)
-            {
-                SetResult("You Win!");
-                StartCoroutine(EndGame());
-            }
+            SetResult("You Win!");
+            StartCoroutine(EndGame());
         }
         
         private void UpdateInputStates()
@@ -107,24 +130,23 @@ namespace Controller.Game
 
         private void HandlePLayerA()
         {
-            _count += 1;
-            AddTime(1);
+            _count += 3;
+            _timeLeft += 7f;
+            _jumpLeft += 3;
         }
 
         private void HandlePLayerB()
         {
             _count += 1;
-            AddTime(5);
+            _timeLeft += 20f;
+            _jumpLeft += 3;
         }
 
         private void HandlePLayerC()
         {
-            _count += 2;
-        }
-        
-        private void AddTime(int factor)
-        {
-            _timeLeft += 5f *  factor;
+            _count += 1;
+            _timeLeft += 7f;
+            _jumpLeft += 10;
         }
         
         private void SetResult(string text)
@@ -140,6 +162,11 @@ namespace Controller.Game
         private void SetCount(string countValue)
         {
             countText.text = "Score: " + countValue;
+        }
+
+        private void SetJump(string  jumpValue)
+        {
+            jumpText.text = "Jumps: " + jumpValue;
         }
     }
 }

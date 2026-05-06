@@ -10,7 +10,7 @@ namespace Controller.Game
         public GameController gameController;
     
         private const float TiltStrength = 10f;
-        private const float MaxTilt = 45f;
+        private const float MaxTilt = 40f;
         private static readonly Vector3 Offset = new(0.0f, 1.0f, -5.0f);
 
         private void LateUpdate()

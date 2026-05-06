@@ -6,8 +6,8 @@ namespace Controller.Player
 {
     public class PlayerController : MonoBehaviour
     {
-        private static readonly Vector3 ResetVector = new(0.0f, 15.0f, 0.0f);
-        private const float Speed = 100f;
+        private static readonly Vector3 ResetVector = new(0.0f, 2.0f, 0.0f);
+        private const float Speed = 50f;
         private Camera _cam;
         private Rigidbody _rigidbody;
     
@@ -16,8 +16,7 @@ namespace Controller.Player
         private float _movementZ;
     
         public GameController gameController;
-    
-        protected Entity.Player ControlledPlayer;
+        protected Entity.Player controlledPlayer;
 
         protected virtual void Start()
         {
@@ -48,7 +47,10 @@ namespace Controller.Player
         }
 
         private void OnJump() {
-            _movementZ = 25.0f;
+            if(gameController.JumpLeft <= 0) return;
+            
+            _movementZ = 15.0f;
+            gameController.JumpLeft = 1;
         }
     
         private void OnTriggerEnter(Collider other)
@@ -56,7 +58,7 @@ namespace Controller.Player
             if (!other.gameObject.CompareTag("Pickup")) return;
         
             other.gameObject.SetActive(false);
-            gameController.ItemCollected(ControlledPlayer);
+            gameController.ItemCollected(controlledPlayer);
         }
     
         private void FixedUpdate()
@@ -95,7 +97,7 @@ namespace Controller.Player
 
             Vector3 input = new Vector3(_movementX, 0.0f, _movementY);
             Vector3 forwardMovement = Speed * input.z * camForward;
-            Vector3 sidewayMovement  = 2 * Speed * input.x * camRight;
+            Vector3 sidewayMovement  = Speed * input.x * camRight;
         
             _rigidbody.AddForce(forwardMovement);
             _rigidbody.AddForce(sidewayMovement);
